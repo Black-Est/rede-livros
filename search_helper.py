@@ -7,6 +7,7 @@ from selenium.webdriver.chrome.options import Options
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 import time
+import os
 
 
 def google_search_improved(query, num_results=50, sleep_interval=1):
@@ -22,12 +23,24 @@ def google_search_improved(query, num_results=50, sleep_interval=1):
     chrome_options.add_argument('--disable-blink-features=AutomationControlled')
     chrome_options.add_argument('user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36')
     
+    # Detectar Chrome em ambiente Render
+    chrome_bin = os.getenv('CHROME_BIN')
+    if chrome_bin:
+        chrome_options.binary_location = chrome_bin
+    
     results = []
     driver = None
     
     try:
         print(f"[SELENIUM] Inicializando Chrome...")
-        service = Service(ChromeDriverManager().install())
+        
+        # Usar chromedriver do Render se disponível, senão usar webdriver-manager
+        chromedriver_path = os.getenv('CHROMEDRIVER_PATH')
+        if chromedriver_path:
+            service = Service(chromedriver_path)
+        else:
+            service = Service(ChromeDriverManager().install())
+        
         driver = webdriver.Chrome(service=service, options=chrome_options)
         
         print(f"[SELENIUM] Acessando Google com query: {query}")
